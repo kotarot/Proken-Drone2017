@@ -36,7 +36,7 @@ void draw() {
   image(img, 0, 0);
 
   // print out AR.Drone information
-  ardrone.printARDroneInfo();
+  //ardrone.printARDroneInfo();
 
   // getting sensor information of AR.Drone
   float pitch = ardrone.getPitch();
@@ -74,27 +74,56 @@ void keyPressed() {
       ardrone.reset();
       ardrone.takeOff(); // take off, AR.Drone cannot move while landing
      delay(6000);
-        for (int i = 0; i < 30; i++) {
+     float altitude = ardrone.getAltitude();
+        while (altitude<=1500) {//1500mm
             ardrone.up(50); // go up
-            delay(100);
+            altitude = ardrone.getAltitude();
+            System.out.println(altitude);
+            delay(70);
         }
+        
         ardrone.stop();
           ardrone.forward(50); // go forward
-               delay(1000);
+               float distance_x = 0.0;
+               float distance_y = 0.0;
+               long prev =System.currentTimeMillis();
+               for (int i = 0; i < 10; i++) {
+                 float[] velocity = ardrone.getVelocity();
+                 long now =System.currentTimeMillis();
+                 System.out.println("now=" + now + "(+" + (now - prev) + ") velocity_x=" + velocity[0] + " velocity_y=" + velocity[1]);
+                 distance_x += velocity[0] * (now - prev);
+                 distance_y += velocity[1] * (now - prev);
+                 delay(100);
+                 prev = now;
+               }
+               System.out.println("distance_x=" + distance_x);
+               System.out.println("distance_y=" + distance_y);
                ardrone.stop();
                delay(2000);
+               
                 ardrone.goRight(50); // go right
-                delay(1500);
+                prev =System.currentTimeMillis();
+                for (int i = 0; i < 10; i++) {
+                 float[] velocity = ardrone.getVelocity();
+                 long now =System.currentTimeMillis();
+                 System.out.println("now=" + now + "(+" + (now - prev) + ") velocity_x=" + velocity[0] + " velocity_y=" + velocity[1]);
+                 distance_x += velocity[0] * (now - prev);
+                 distance_y += velocity[1] * (now - prev);
+                 delay(150);
+                 prev = now;
+               }
+               System.out.println("distance_x=" + distance_x);
+               System.out.println("distance_y=" + distance_y);
                  ardrone.stop();
                   delay(2000);
-                  ardrone.backward(50); // go right
+                /*  ardrone.backward(50); // go right
                 delay(1500);
                  ardrone.stop();
                   delay(2000);
                   ardrone.goLeft(50); // go right
                 delay(1500);
                  ardrone.stop();
-               delay(2000);
+               delay(2000);*/
 
      ardrone.landing();
     } 
