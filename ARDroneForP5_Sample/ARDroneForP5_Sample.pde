@@ -24,6 +24,80 @@ void setup() {
   ardrone.start();
 }
 
+void kaiten(){
+  ardrone.spinRight(50);
+  float beforeyaw = ardrone.getYaw() + 180;
+  for(int i=0;i<=100;i++){
+    float yaw = ardrone.getYaw() + 180;
+    System.out.println(yaw);
+    float delta_yaw = yaw-beforeyaw ;
+    if(delta_yaw<0){
+      delta_yaw += 360;
+    } 
+    if((delta_yaw)>=90) break;
+    delay(100);
+  }
+  ardrone.stop();
+  delay(1000);
+}
+
+void chokushin(){
+  int forwardis=1200000;
+  ardrone.stop();
+  ardrone.forward(20); // go forward
+  float distance_x = 0.0;
+  float distance_y = 0.0;
+  long prev =System.currentTimeMillis();
+  float speed_before_stop=1;
+  //////
+  for (int i = 0; i < 100; i++) {
+    float[] velocity = ardrone.getVelocity();
+    long now =System.currentTimeMillis();
+    System.out.println("now=" + now + "(+" + (now - prev) + ") velocity_x=" + velocity[0] + " velocity_y=" + velocity[1]);
+    distance_x += velocity[0] * (now - prev);
+    distance_y += velocity[1] * (now - prev);
+    ardrone.forward((int)((forwardis-distance_x)/forwardis*20));
+    delay(90);
+    if(velocity[1]>0){
+      ardrone.goLeft(5);
+    }else if(velocity[1]<0){
+      ardrone.goRight(5);
+    }
+    delay(10);
+    prev = now;
+    if (distance_x >forwardis) {
+      System.out.println("distance_x=" + distance_x + " (break)");
+      System.out.println("distance_y=" + distance_y + " (break)");
+      speed_before_stop=velocity[0];
+      break;
+    }
+  }
+  
+  //float speed_before_stop=velocity[0];
+  if(speed_before_stop<=0)speed_before_stop=2;
+ 
+  ardrone.stop();
+ 
+  prev =System.currentTimeMillis();
+  for(int i=0;i<40;i++){
+   
+    float[] velocity = ardrone.getVelocity();
+    float vel=velocity[0];
+    if(vel> speed_before_stop)vel= speed_before_stop;
+    if(vel<=0)vel=1;
+    ardrone.backward((int)(vel/speed_before_stop*20));
+    long now =System.currentTimeMillis();
+    System.out.println("now=" + now + "(+" + (now - prev) + ") velocity_x=" + velocity[0] + " velocity_y=" + velocity[1]);
+    distance_x += velocity[0] * (now - prev);
+    distance_y += velocity[1] * (now - prev);
+    delay(100);
+    prev = now;
+  }
+  System.out.println("distance_x=" + distance_x);
+  System.out.println("distance_y=" + distance_y);
+
+}
+
 void draw() {
   background(204);  
 
@@ -68,102 +142,67 @@ void keyPressed() {
       ardrone.goLeft(); // go left
     } 
     else if (keyCode == RIGHT) {
-      ardrone.goRight(); // go right
+      
+      //ardrone.goRight(); // go right
+      
+      ardrone.reset();
+      ardrone.takeOff(); // take off, AR.Drone cannot move while landing
+      delay(6000);
+      float altitude = ardrone.getAltitude();
+      while (altitude<=1500) {//1500mm
+        ardrone.up(50); // go up
+        altitude = ardrone.getAltitude();
+        System.out.println(altitude);
+        delay(70);
+      }
+      ardrone.stop();
+      delay(2000);
+        
+      ardrone.spinRight();
+      for(int i=0;i<=20;i++){
+        float yaw = ardrone.getYaw();
+        System.out.println(yaw);
+        delay(100);
+      }
+      ardrone.stop();
+      delay(2000);
+
+      ardrone.landing();
+      
     } 
     else if (keyCode == SHIFT) {
       ardrone.reset();
       ardrone.takeOff(); // take off, AR.Drone cannot move while landing
-     delay(6000);
-     float altitude = ardrone.getAltitude();
-        while (altitude<=1500) {//1500mm
-            ardrone.up(50); // go up
-            altitude = ardrone.getAltitude();
-            System.out.println(altitude);
-            delay(70);
-        }
-        int forwardis=1200000;
-        ardrone.stop();
-          ardrone.forward(20); // go forward
-               float distance_x = 0.0;
-               float distance_y = 0.0;
-               long prev =System.currentTimeMillis();
-               float speed_before_stop=1;
-               for (int i = 0; i < 100; i++) {
-                 float[] velocity = ardrone.getVelocity();
-                 long now =System.currentTimeMillis();
-                 System.out.println("now=" + now + "(+" + (now - prev) + ") velocity_x=" + velocity[0] + " velocity_y=" + velocity[1]);
-                 distance_x += velocity[0] * (now - prev);
-                 distance_y += velocity[1] * (now - prev);
-                 ardrone.forward((int)((forwardis-distance_x)/forwardis*20));
-                 delay(90);
-                 if(velocity[1]>0){
-                   ardrone.goLeft(5);
-                 }else if(velocity[1]<0){
-                   ardrone.goRight(5);
-                 }
-                 delay(10);
-                 prev = now;
-                 if (distance_x >forwardis) {
-                   System.out.println("distance_x=" + distance_x + " (break)");
-                   System.out.println("distance_y=" + distance_y + " (break)");
-                   speed_before_stop=velocity[0];
-                   break;
-                 }
-               }
-               //float speed_before_stop=velocity[0];
-               if(speed_before_stop<=0)speed_before_stop=2;
-               
-               ardrone.stop();
-               
-                prev =System.currentTimeMillis();
-               for(int i=0;i<40;i++){
-                 
-                 float[] velocity = ardrone.getVelocity();
-                 float vel=velocity[0];
-                 if(vel> speed_before_stop)vel= speed_before_stop;
-                 if(vel<=0)vel=1;
-                 ardrone.backward((int)(vel/speed_before_stop*20));
-                 long now =System.currentTimeMillis();
-                 System.out.println("now=" + now + "(+" + (now - prev) + ") velocity_x=" + velocity[0] + " velocity_y=" + velocity[1]);
-                 distance_x += velocity[0] * (now - prev);
-                 distance_y += velocity[1] * (now - prev);
-                 delay(100);
-                 prev = now;
-               }
-               System.out.println("distance_x=" + distance_x);
-               System.out.println("distance_y=" + distance_y);
-               
-                ardrone.goRight(50); // go right
-                prev =System.currentTimeMillis();
-                for (int i = 0; i < 10; i++) {
-                 float[] velocity = ardrone.getVelocity();
-                 long now =System.currentTimeMillis();
-                 System.out.println("now=" + now + "(+" + (now - prev) + ") velocity_x=" + velocity[0] + " velocity_y=" + velocity[1]);
-                 distance_x += velocity[0] * (now - prev);
-                 distance_y += velocity[1] * (now - prev);
-                 delay(150);
-                 prev = now;
-               }
-               System.out.println("distance_x=" + distance_x);
-               System.out.println("distance_y=" + distance_y);
-                 ardrone.stop();
-                  delay(2000);
-                /*  ardrone.backward(50); // go right
-                delay(1500);
-                 ardrone.stop();
-                  delay(2000);
-                  ardrone.goLeft(50); // go right
-                delay(1500);
-                 ardrone.stop();
-               delay(2000);*/
-
-     ardrone.landing();
+      delay(3000);
+      float altitude = ardrone.getAltitude();
+      while (altitude<=1500) {//1500mm
+        ardrone.up(50); // go up
+        altitude = ardrone.getAltitude();
+        System.out.println(altitude);
+        delay(70);
+      }
+      
+      chokushin();
+      
+      kaiten();
+      
+      chokushin();
+      
+      kaiten();
+      
+      chokushin();
+      
+      kaiten();
+      
+      chokushin();
+      
+      ardrone.landing();
     } 
-    else if (keyCode == CONTROL) {
+    else if (keyCode == CONTROL) { //<>//
       ardrone.landing();
       // landing
     }
-  } 
+  }  //<>//
   else {
     if (key == 's') {
       ardrone.stop(); // hovering
