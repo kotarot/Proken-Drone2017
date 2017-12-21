@@ -24,25 +24,26 @@ void setup() {
   ardrone.start();
 }
 
-void kaiten(){
-  ardrone.spinRight(50);
-  float beforeyaw = ardrone.getYaw() + 180;
-  for(int i=0;i<=100;i++){
+void kaiten(float beforeyaw, float target){
+  System.out.println("beforeyaw: " + beforeyaw);
+  ardrone.spinRight(25);
+  for(int i=0;i<=300;i++){
     float yaw = ardrone.getYaw() + 180;
-    System.out.println(yaw);
+    System.out.println("yaw:" + yaw);
     float delta_yaw = yaw-beforeyaw ;
-    if(delta_yaw<0){
+    if(delta_yaw<-10){
       delta_yaw += 360;
     } 
-    if((delta_yaw)>=90) break;
+    System.out.println("delta_yaw: " + delta_yaw);
+    if((delta_yaw)>=target) break;
+    ardrone.spinRight(25);
     delay(100);
   }
   ardrone.stop();
   delay(1000);
 }
 
-void chokushin(){
-  int forwardis=1200000;
+void chokushin(int forwardis){
   ardrone.stop();
   ardrone.forward(20); // go forward
   float distance_x = 0.0;
@@ -181,20 +182,21 @@ void keyPressed() {
         System.out.println(altitude);
         delay(70);
       }
+      float beforeyow = ardrone.getYaw() + 180;
       
-      chokushin();
+      chokushin(1200000);
       
-      kaiten();
+      kaiten(beforeyow, 80);
       
-      chokushin();
+      chokushin(1700000);
       
-      kaiten();
+      kaiten(beforeyow,165);
       
-      chokushin();
+      chokushin(1400000);
       
-      kaiten();
+      kaiten(beforeyow,245);
       
-      chokushin();
+      chokushin(1200000);
       
       ardrone.landing();
     } 
