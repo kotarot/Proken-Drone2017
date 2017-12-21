@@ -1,4 +1,4 @@
-/**
+/** //<>// //<>//
  * Original version of this program is:
  * https://github.com/shigeodayo/ARDroneForP5/blob/master/examples/ARDroneForP5_Sample/ARDroneForP5_Sample.pde
  * which is licensed under the Apache License, Version 2.0 (the "License")
@@ -8,10 +8,29 @@
 
 import com.shigeodayo.ardrone.processing.*;
 
+//import pFaceDetect.*;
+
+import gab.opencv.*;
+import processing.video.*;
+import java.awt.*;
+
+Capture video;
+OpenCV opencv;
+PImage canny;
+
+void captureEvent(Capture c) {
+  c.read();
+}
+
 ARDroneForP5 ardrone;
 
+Rectangle[] faces;
+
+//PFaceDetect face;
+//PImage img;
+
 void setup() {
-  size(320, 240);
+  //size(320, 240);
 
   ardrone=new ARDroneForP5("192.168.1.1");
   // connect to the AR.Drone
@@ -22,6 +41,74 @@ void setup() {
   ardrone.connectVideo();
   // start to control AR.Drone and get sensor and video data of it
   ardrone.start();
+
+  size(640, 360);
+
+  // capture: 320 x 240
+  //video = new Capture(this, width/2, height/2);  
+  //opencv = new OpenCV(this, width, height);
+  //opencv.loadCascade(OpenCV.CASCADE_FRONTALFACE);
+
+  //video.start(); // start capture
+}
+
+void draw() {
+  //background(204);  
+
+  // getting image from AR.Drone
+  // true: resizeing image automatically
+  // false: not resizing
+  PImage img = ardrone.getVideoImage(false);
+  if (img == null)
+    return;
+  //image(img, 0, 0);
+
+  //scale(2);  // 2 times
+  //opencv.loadImage(img);
+
+  // canny edge filter
+  //opencv.findCannyEdges(50, 200);
+  //canny = opencv.getSnapshot();
+
+  // display
+  image(img, 0, 0 );
+
+  // Face detection
+  faces = get_faces(img);
+  noFill();
+  stroke(0, 255, 0);
+  strokeWeight(3);
+  println(faces.length);
+  for (int i = 0; i < faces.length; i++) {
+    println(faces[i].x + "," + faces[i].y);
+    rect(faces[i].x, faces[i].y, faces[i].width, faces[i].height);
+  }
+
+  // print out AR.Drone information
+  //ardrone.printARDroneInfo();
+
+  // getting sensor information of AR.Drone
+  float pitch = ardrone.getPitch();
+  float roll = ardrone.getRoll();
+  float yaw = ardrone.getYaw();
+  float altitude = ardrone.getAltitude();
+  float[] velocity = ardrone.getVelocity();
+  int battery = ardrone.getBatteryPercentage();
+
+  String attitude = "pitch:" + pitch + "\nroll:" + roll + "\nyaw:" + yaw + "\naltitude:" + altitude;
+  text(attitude, 20, 85);
+  String vel = "vx:" + velocity[0] + "\nvy:" + velocity[1];
+  text(vel, 20, 140);
+  String bat = "battery:" + battery + " %";
+  text(bat, 20, 170);
+}
+
+Rectangle[] get_faces(PImage img) {
+  opencv = new OpenCV(this, img);
+  opencv.loadCascade(OpenCV.CASCADE_FRONTALFACE);
+  
+  Rectangle[] faces = opencv.detect();
+  return faces;
 }
 
 void kaiten(float beforeyaw, float target){
@@ -99,36 +186,6 @@ void chokushin(int forwardis){
 
 }
 
-void draw() {
-  background(204);  
-
-  // getting image from AR.Drone
-  // true: resizeing image automatically
-  // false: not resizing
-  PImage img = ardrone.getVideoImage(false);
-  if (img == null)
-    return;
-  image(img, 0, 0);
-
-  // print out AR.Drone information
-  //ardrone.printARDroneInfo();
-
-  // getting sensor information of AR.Drone
-  float pitch = ardrone.getPitch();
-  float roll = ardrone.getRoll();
-  float yaw = ardrone.getYaw();
-  float altitude = ardrone.getAltitude();
-  float[] velocity = ardrone.getVelocity();
-  int battery = ardrone.getBatteryPercentage();
-
-  String attitude = "pitch:" + pitch + "\nroll:" + roll + "\nyaw:" + yaw + "\naltitude:" + altitude;
-  text(attitude, 20, 85);
-  String vel = "vx:" + velocity[0] + "\nvy:" + velocity[1];
-  text(vel, 20, 140);
-  String bat = "battery:" + battery + " %";
-  text(bat, 20, 170);
-}
-
 //PCのキーに応じてAR.Droneを操作できる．
 // controlling AR.Drone through key input
 void keyPressed() {
@@ -171,6 +228,10 @@ void keyPressed() {
       ardrone.landing();
       
     } 
+
+    // ================================
+    // Heya wo isshuu
+    // ================================
     else if (keyCode == SHIFT) {
       ardrone.reset();
       ardrone.takeOff(); // take off, AR.Drone cannot move while landing
@@ -199,12 +260,30 @@ void keyPressed() {
       chokushin(1200000);
       
       ardrone.landing();
-    } 
-    else if (keyCode == CONTROL) { //<>//
-      ardrone.landing();
-      // landing
     }
-  }  //<>//
+
+    // ================================
+    // Kao ninshiki
+    // ================================
+    else if (keyCode == CONTROL) {
+      ardrone.reset();
+
+      // kokoni takeoff
+
+      for (int i = 0; i < 100; i++) {
+        System.out.println("!!!! " + i);
+        draw();
+        
+        System.out.println(faces.length);
+        // kokode kaono ichini motozuite drone ugoku shori
+        // example: sayuuni kaiten, zenshin, etc...
+
+        delay(100);
+      }
+
+      ardrone.landing();
+    }
+  } 
   else {
     if (key == 's') {
       ardrone.stop(); // hovering
