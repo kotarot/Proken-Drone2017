@@ -24,6 +24,7 @@ void captureEvent(Capture c) {
 
 ARDroneForP5 ardrone;
 
+ARDroneForP5_Sample ardrone_sample;
 Rectangle[] faces;
 
 //PFaceDetect face;
@@ -50,6 +51,8 @@ void setup() {
   //opencv.loadCascade(OpenCV.CASCADE_FRONTALFACE);
 
   //video.start(); // start capture
+  
+  ardrone_sample = this;
 }
 
 void draw() {
@@ -78,10 +81,12 @@ void draw() {
   noFill();
   stroke(0, 255, 0);
   strokeWeight(3);
-  println(faces.length);
-  for (int i = 0; i < faces.length; i++) {
-    println(faces[i].x + "," + faces[i].y);
-    rect(faces[i].x, faces[i].y, faces[i].width, faces[i].height);
+  if (faces != null) {
+    println(faces.length);
+    for (int i = 0; i < faces.length; i++) {
+      println(faces[i].x + "," + faces[i].y);
+      rect(faces[i].x, faces[i].y, faces[i].width, faces[i].height);
+    }
   }
 
   // print out AR.Drone information
@@ -104,10 +109,16 @@ void draw() {
 }
 
 Rectangle[] get_faces(PImage img) {
-  opencv = new OpenCV(this, img);
-  opencv.loadCascade(OpenCV.CASCADE_FRONTALFACE);
-  
-  Rectangle[] faces = opencv.detect();
+  Rectangle[] faces;
+
+  try {
+    opencv = new OpenCV(ardrone_sample, img);
+    opencv.loadCascade(OpenCV.CASCADE_FRONTALFACE);
+
+    faces = opencv.detect();
+  } catch (NullPointerException e) {
+    return null;
+  }
   return faces;
 }
 
@@ -266,22 +277,8 @@ void keyPressed() {
     // Kao ninshiki
     // ================================
     else if (keyCode == CONTROL) {
-      ardrone.reset();
-
-      // kokoni takeoff
-
-      for (int i = 0; i < 100; i++) {
-        System.out.println("!!!! " + i);
-        draw();
-        
-        System.out.println(faces.length);
-        // kokode kaono ichini motozuite drone ugoku shori
-        // example: sayuuni kaiten, zenshin, etc...
-
-        delay(100);
-      }
-
-      ardrone.landing();
+      Thread t = new Thread(new KaoThread());
+      t.start();
     }
   } 
   else {
@@ -315,5 +312,32 @@ void keyPressed() {
     else if (key == '5') {
       ardrone.toggleCamera(); // set next camera setting
     }
+  }
+}
+
+// ================================
+// [THREAD] Kao ninshiki
+// ================================
+class KaoThread implements Runnable {
+  public synchronized void run() {
+    ardrone.reset();
+
+    // kokoni takeoff
+
+    for (int i = 0; i < 100; i++) {
+      System.out.println("!!!! " + i);
+
+      if (faces != null) {
+        System.out.println(faces.length);
+        // kokode kaono ichini motozuite drone ugoku shori
+        // example: sayuuni kaiten, zenshin, etc...
+
+        delay(100);
+      } else {
+        delay(20);
+      }
+    }
+
+    ardrone.landing();
   }
 }
