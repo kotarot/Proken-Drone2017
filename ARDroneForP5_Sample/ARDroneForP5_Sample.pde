@@ -329,9 +329,19 @@ class KaoThread implements Runnable {
 
       if (faces != null) {
         System.out.println(faces.length);
+        for (int face = 0; face < faces.length; face++) {
+          System.out.println("face " + face + " x:" + faces[face].x + " y:" + faces[face].y + " width:" + faces[face].width + " height:" + faces[face].height);
+        }
+
         // kokode kaono ichini motozuite drone ugoku shori
         // example: sayuuni kaiten, zenshin, etc...
-
+        if (1 <= faces.length) {
+          // example
+          if (200 <= faces[0].x) {
+            ; // migi-kaiten suru
+          }
+        }
+        
         delay(100);
       } else {
         delay(20);
