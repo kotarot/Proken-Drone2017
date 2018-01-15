@@ -197,6 +197,48 @@ void chokushin(int forwardis){
 
 }
 
+void chokushin2(int forwardis){
+  ardrone.stop();
+  ardrone.forward(20); // go forward
+  float distance_x = 0.0;
+  float distance_y = 0.0;
+  long prev =System.currentTimeMillis();
+  float speed_before_stop=1;
+  //////
+  for (int i = 0; i < 100; i++) {
+    float[] velocity = ardrone.getVelocity();
+    long now =System.currentTimeMillis();
+    System.out.println("now=" + now + "(+" + (now - prev) + ") velocity_x=" + velocity[0] + " velocity_y=" + velocity[1]);
+    distance_x += velocity[0] * (now - prev);
+    distance_y += velocity[1] * (now - prev);
+    ardrone.forward((int)((forwardis-distance_x)/forwardis*20));
+    delay(90);
+    if(velocity[1]>0){
+      ardrone.goLeft(5);
+    }else if(velocity[1]<0){
+      ardrone.goRight(5);
+    }
+    delay(10);
+    prev = now;
+    if (distance_x >forwardis) {
+      System.out.println("distance_x=" + distance_x + " (break)");
+      System.out.println("distance_y=" + distance_y + " (break)");
+      speed_before_stop=velocity[0];
+      break;
+    }
+  }
+  
+  //float speed_before_stop=velocity[0];
+  if(speed_before_stop<=0)speed_before_stop=2;
+ 
+  ardrone.stop();
+ 
+  System.out.println("distance_x=" + distance_x);
+  System.out.println("distance_y=" + distance_y);
+
+}
+
+
 //PCのキーに応じてAR.Droneを操作できる．
 // controlling AR.Drone through key input
 void keyPressed() {
@@ -299,6 +341,11 @@ void keyPressed() {
     }
     else if (key == '1') {
       ardrone.setHorizontalCamera(); // set front camera
+      for(int ii=0;ii<20;ii++){
+        System.out.println("faces[0].width=" + faces[0].width);
+        System.out.println("faces[0].height=" + faces[0].height);
+        delay(1000);
+      }
     }
     else if (key == '2') {
       ardrone.setHorizontalCameraWithVertical(); // set front camera with second camera (upper left)
@@ -323,25 +370,53 @@ class KaoThread implements Runnable {
     ardrone.reset();
 
     // kokoni takeoff
-
-    for (int i = 0; i < 100; i++) {
-      System.out.println("!!!! " + i);
-
+  ardrone.takeOff(); // take off, AR.Drone cannot move while landing
+      delay(6000);
+      float altitude = ardrone.getAltitude();
+      while (altitude<=1500) {//1500mm
+        ardrone.up(50); // go up
+        altitude = ardrone.getAltitude();
+        System.out.println(altitude);
+        delay(70);
+      }
+    while(true){
+      //System.out.println("!!!! " + i);
+  
       if (faces != null) {
         System.out.println(faces.length);
-        for (int face = 0; face < faces.length; face++) {
+        for (int face = 0; face<faces.length;face++) {
           System.out.println("face " + face + " x:" + faces[face].x + " y:" + faces[face].y + " width:" + faces[face].width + " height:" + faces[face].height);
         }
 
         // kokode kaono ichini motozuite drone ugoku shori
         // example: sayuuni kaiten, zenshin, etc...
-        if (1 <= faces.length) {
+        if (1 <= faces.length&&faces[0].y>=150-30&&faces[0].y<150+30) {
           // example
-          if (200 <= faces[0].x) {
+          
+          if (270+20 <= faces[0].x) {
+            ardrone.spinRight(25);
+            delay(100);
+            ardrone.stop();
             ; // migi-kaiten suru
+          }else if(faces[0].x<270-20){
+            ardrone.spinLeft(25);
+            delay(100);
+            ardrone.stop();
+          }else{
+            System.out.println("faces[0].width=" + faces[0].width);
+            System.out.println("faces[0].height=" + faces[0].height);
+            System.out.println("faces[0].x=" + faces[0].x);
+            System.out.println("faces[0].y=" + faces[0].y);
+            
+            
+            if(faces.length>=1&&faces[0].width>10)chokushin2(1200000/5);
+            if(faces[0].width>120){
+              ardrone.stop();
+              break;
+            }
           }
         }
-        
+        //printf("face.x=%d",faces[0].x);
         delay(100);
       } else {
         delay(20);
