@@ -410,6 +410,7 @@ class KaoThread implements Runnable {
             
             
             if(faces.length>=1&&faces[0].width>10)chokushin2(1200000/5);
+            else ardrone.stop();
             if(faces[0].width>120){
               ardrone.stop();
               break;
